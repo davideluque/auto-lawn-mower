@@ -40,32 +40,36 @@ import rospy
 from geometry_msgs.msg import Twist, Pose
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
+#sudo chmod 666 /dev/ttyACM0
 
 def talker():
     pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
     rospy.init_node('talker', anonymous=True)
-    rate = rospy.Rate(10) # 10hz
+    rate = rospy.Rate(100) # 10hz
+    twist = Twist()
     while not rospy.is_shutdown():
-        twist = Twist()
-        twist.linear.x = 1
+        twist.linear.x = 0.3
         #rospy.loginfo(hello_str)
         pub.publish(twist)
         rate.sleep()   
+
 
 def callback(data):
     #print("Callback")
     #print(data)
     rate = rospy.Rate(1) # 10hz 
-    print(data.pose.pose.position.x)
+    #print(data.pose.pose)
+    print(data)
     rate.sleep()
 
 def listener():
     rospy.init_node('talker', anonymous=True)
-    rospy.Subscriber('odom', Odometry, callback)
+    #rospy.Subscriber('odom', Odometry, callback)
+    rospy.Subscriber('cmd_vel', Pose, callback)
     rospy.spin()
 
 if __name__ == '__main__':
     try:
-        listener()
+        talker()
     except rospy.ROSInterruptException:
         pass
