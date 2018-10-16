@@ -57,19 +57,24 @@ def talker():
 def callback(data):
     #print("Callback")
     #print(data)
-    rate = rospy.Rate(1) # 10hz 
-    #print(data.pose.pose)
-    print(data)
-    rate.sleep()
+    #rate = rospy.Rate(0.1) # 10hz 
+
+    rospy.loginfo(data)
+
+    #while not rospy.is_shutdown():
+        #print(data.pose.pose)
+        #print(data)
+        
+        #rate.sleep()
 
 def listener():
     rospy.init_node('talker', anonymous=True)
-    #rospy.Subscriber('odom', Odometry, callback)
-    rospy.Subscriber('cmd_vel', Pose, callback)
+    rospy.Subscriber('odom', Odometry, callback)
+    #rospy.Subscriber('cmd_vel', Pose, callback)
     rospy.spin()
 
 if __name__ == '__main__':
     try:
-        talker()
+        listener()
     except rospy.ROSInterruptException:
         pass
