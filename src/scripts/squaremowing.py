@@ -126,13 +126,9 @@ class HRQ(object):
         self.vel_msg.linear.x = abs(speed)
 
         # Loop to move the turtle in an specified distance
-        print("AM I?")
-        k = 0
         while (self.is_within_square()):
-            print("YES I AM")
             # Publish the velocity
             self.velocity_publisher.publish(self.vel_msg)
-            k += 1
         
         self.stop()
 
