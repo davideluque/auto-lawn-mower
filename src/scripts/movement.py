@@ -14,11 +14,13 @@ def forward(vel_msg, velocity_publisher, speed, distance):
     vel_msg.angular.y = 0
     vel_msg.angular.z = 0
 
-    # Setting the current calculus
-    t0 = rospy.Time.now().to_sec()
-    current_distance = 0
-    vel_msg.linear.x = abs(speed)
+    # Setting the currendef callback(data):
+    #print("Callback")
+    #print(data)
+    #rate = rospy.Rate(0.1) # 10hz 
 
+    current_distance = 0
+    t0 = rospy.Time.now().to_sec()
     # Loop to move the turtle in an specified distance
     while (current_distance < distance):
         # Publish the velocity
