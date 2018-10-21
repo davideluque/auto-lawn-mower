@@ -18,8 +18,7 @@ def signal_handler(sig, frame):
         print('Exit')
         sys.exit(0)
 
-class HRQ(object):
-    
+class HQR(object):
     def __init__(self, speed, square_size_x, square_size_y, angular_speed, relative_angle):
         self.speed = speed
         self.square_size_x = square_size_x
@@ -43,7 +42,9 @@ class HRQ(object):
         self.vel_msg = Twist()
         self.odom_msg = Odometry()
     
+
     def update(self, data):
+        # Updates the pose data contiously 
         self.x = data.pose.pose.position.x
         self.y = data.pose.pose.position.y
         
@@ -56,7 +57,7 @@ class HRQ(object):
     
     def update_encoder(self, data):
         # Wheel encoder data
-        # Use to check if the robot has stopped
+        # Use to see when the robot has stopped
         self.rwheel = data.rwheel
         self.lwheel = data.lwheel
 
@@ -75,16 +76,12 @@ class HRQ(object):
         return False
 
     def move_forward(self):
-        self.vel_msg.linear.y = 0
-        self.vel_msg.linear.z = 0
-        self.vel_msg.angular.x = 0
-        self.vel_msg.angular.y = 0
-        self.vel_msg.angular.z = 0
+
 
         # Setting the current calculus
         self.vel_msg.linear.x = abs(speed)
 
-        # Loop to move the turtle in an specified distance
+        # Loop to move while it is within the boundaries
         while (self.is_within_square()):
             # Publish the velocity
             self.velocity_publisher.publish(self.vel_msg)
@@ -94,18 +91,12 @@ class HRQ(object):
         return True
 
     def turn(self):
-        # We wont use linear components
-        self.vel_msg.linear.x=0
-        self.vel_msg.linear.y=0
-        self.vel_msg.linear.z=0
-        self.vel_msg.angular.x = 0
-        self.vel_msg.angular.y = 0
 
-    
         # Setting the current time for distance calculus
         t0 = rospy.Time.now().to_sec()
         current_angle = 0
         variable_angle = random.uniform(-math.radians(30), math.radians(30))
+
 
         # Checking if our movement is CW or CCW
         self.clockwise = self.turning_direction()
@@ -114,7 +105,8 @@ class HRQ(object):
         else:
             self.vel_msg.angular.z = abs(self.angular_speed)
 
-
+        # Make a random turn in the interval [150, 210] as the
+        # initial angle is been set 180
         while(current_angle < self.relative_angle + variable_angle):
             self.velocity_publisher.publish(self.vel_msg)
             t1 = rospy.Time.now().to_sec()
@@ -122,9 +114,6 @@ class HRQ(object):
 
         self.stop()
         
-        # Setting the current calculus
-        current_distance = 0
-        self.vel_msg.linear.x = abs(speed)
 
         # Not in use
         # if (abs(self.x) > square_size_x/2):
@@ -136,6 +125,11 @@ class HRQ(object):
         #     square_size_y/2 - abs(self.y)
 
 
+        # Setting the current calculus
+        current_distance = 0
+        self.vel_msg.linear.x = abs(speed)
+        t0 = rospy.Time.now().to_sec()
+        
         # Loop to move the robot for a specified distance.
         # To move back into the square
         while (current_distance < 0.5):
@@ -151,9 +145,14 @@ class HRQ(object):
     def stop(self):
         # Stops the robot.
 
-        # Sets the velocity to zero
+        # Sets all velocities to zero
         self.vel_msg.linear.x = 0
+        self.vel_msg.linear.y = 0
+        self.vel_msg.linear.z = 0
+        self.vel_msg.angular.x = 0
+        self.vel_msg.angular.y = 0
         self.vel_msg.angular.z = 0
+
         self.velocity_publisher.publish(self.vel_msg)
 
         # Waits until the wheels have stopped
@@ -165,7 +164,7 @@ class HRQ(object):
 
 
     def turning_direction(self):
-        # Finds the angle needed to turn back to the square
+        # Finds the shorter turning direction to turn back into the circle
 
         # Quaternion coordinates
         quaternion = (
@@ -185,7 +184,7 @@ class HRQ(object):
         # The robots angle from the starting pose
         offset_angle = math.atan2(self.y , self.x)  # .atan2(y,x) takes the signs into account
 
-        print("ori_angle: %s, offset_angle: %s" % (str(ori_angle), str(offset_angle)))
+        # print("ori_angle: %s, offset_angle: %s" % (str(ori_angle), str(offset_angle)))
 
         # Determines to turn clockwise or counter clockwise depending on position and orientation.
         if(abs(ori_angle) <= abs(offset_angle)):
@@ -194,13 +193,11 @@ class HRQ(object):
             return 1 # Clockwise
         
 
-
     def main(self):
         
         while(True):
             self.move_forward()
             self.turn()
-
 
 if __name__ == '__main__':
     try:
@@ -221,11 +218,11 @@ if __name__ == '__main__':
 
         PI = math.pi
   
-        # Converting from angles toOdomet radians
+        # Converting from angles to radians
         angular_speed = anglespeed*2*PI/360
         relative_angle = angle*2*PI/360
 
-        hrq = HRQ(speed, square_size_x, square_size_y, angular_speed, relative_angle)
-        hrq.main()
+        hqr = HQR(speed, square_size_x, square_size_y, angular_speed, relative_angle)
+        hqr.main()
 
     except rospy.ROSInterruptException: pass
